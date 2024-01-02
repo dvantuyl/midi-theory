@@ -6,6 +6,7 @@
   let notesPressed: number[] = [];
   let notes: string[] = [];
   let chords: string[] = [];
+  let midiData: [];
 
   // // start talking to MIDI controller
   if (navigator.requestMIDIAccess) {
@@ -49,6 +50,7 @@
           (note) => note !== messageData.data[1]
         );
       }
+      midiData = [...midiData, messageData.data];
 
       notes = notesPressed.sort().map(Note.fromMidi);
       chords = Chord.detect(notes);
@@ -67,6 +69,13 @@
 
 <div class="midi-wrapper">
   <div>
+    <section id="midi-data">
+      <ul>
+        {#each midiData as data}
+          <li>{data}</li>
+        {/each}
+      </ul>
+    </section>
     <section id="chord-data">
       {#each chords as chord}
         <h2>{chordLookup(chord) || chord}</h2>
