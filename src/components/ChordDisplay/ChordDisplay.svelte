@@ -1,25 +1,11 @@
 <script lang="ts">
-  import { nMap } from "../../data/chordmap.ts";
+  import { Note, Chord } from "tonal";
 
   let midi;
-  let chord = "Unknown";
 
   let notesPressed: number[] = [];
-
-  const nC = 0;
-  const nCs = 1;
-  const nD = 2;
-  const nDs = 3;
-  const nE = 4;
-  const nF = 5;
-  const nFs = 6;
-  const nG = 7;
-  const nGs = 8;
-  const nA = 9;
-  const nAs = 10;
-  const nB = 11;
-
-  let dataList: Array<Uint8Array> = [];
+  let notes: string[] = [];
+  let chords: string[] = [];
 
   // // start talking to MIDI controller
   if (navigator.requestMIDIAccess) {
@@ -64,7 +50,8 @@
         );
       }
 
-      chord = toChord(notesPressed);
+      notes = notesPressed.sort().map(Note.fromMidi);
+      chords = Chord.detect(notes);
     }
   }
 
@@ -73,39 +60,22 @@
     console.warn("Not recognising MIDI controller");
   }
 
-  function toChord(notes: number[]) {
-    const chordIndex = notes.sort().map(toKeyIndexPartial).join("");
-    const chord = nMap[chordIndex];
-    return chord ? chord : "Unknown";
-  }
-
-  function toKeyIndexPartial(midiNote: number) {
-    const keyIndexPartials = [
-      "0",
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "A",
-      "B",
-    ];
-    return keyIndexPartials[midiNote % 12];
+  function chordLookup(chord: string) {
+    return Chord.get(chord)?.name;
   }
 </script>
 
 <div class="midi-wrapper">
   <div>
-    <h2>Simple MIDI API Example</h2>
-
-    <p>Plug in your MIDI controller and see the data logged here</p>
-
-    <section id="midi-data">
-      {chord}
+    <section id="chord-data">
+      {#each chords as chord}
+        <h2>{chordLookup(chord) || chord}</h2>
+      {/each}
+    </section>
+    <section id="node-data">
+      {#each notes as note}
+        <div>{note}</div>
+      {/each}
     </section>
   </div>
 </div>
@@ -118,60 +88,39 @@
     --green: hsla(52, 75%, 45%, 1);
   }
   .midi-wrapper {
-    width: 90%;
-    max-width: 640px;
+    width: 100%;
     margin: 0px auto;
-    padding: 2em;
     box-sizing: border-box;
-    background: var(--cream);
     font-family: "Varela Round", sans-serif;
     color: var(--brown);
-    line-height: 1.3;
-  }
-  .midi-wrapper > div {
-    padding: 2em;
-    background: transparentize(white, 0.3);
-    border: 10px solid white;
-  }
-  h2,
-  p,
-  ul {
-    padding-bottom: 1em;
-  }
-  h2 {
-    text-align: center;
-    font-size: 2em;
-  }
-  p {
-    font-size: 1.2em;
   }
 
-  #midi-data {
+  #chord-data {
     position: relative;
-    overflow: hidden;
-    height: 300px;
-    background: white;
-    border: 10px solid var(--purple);
   }
-  #midi-data ul {
-    position: absolute;
-    left: 0px;
-    bottom: 0px;
-    padding: 1em;
-  }
-  #midi-data ul li {
-    padding: 0.2em 0.2em 0.2em 1em;
-    font-size: 1.6em;
+  #chord-data h2 {
+    font-size: 6em;
     font-family: monospace;
   }
-  #midi-data ul li:last-child {
+  #chord-data h2 {
     font-weight: bold;
     color: var(--purple);
     animation: flash 0.5s;
   }
-  #midi-data ul li:last-child:before {
-    content: "> ";
-    margin-left: -1em;
+
+  #node-data {
+    position: absolute;
+    bottom: 1em;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    padding: 0.2em 0.2em 0.2em 1em;
+    font-size: 3em;
+    font-family: monospace;
+    color: var(--purple);
+    animation: flash 0.5s;
   }
 
   @keyframes flash {
