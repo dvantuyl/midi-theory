@@ -1,12 +1,13 @@
 <script lang="ts">
   import { Note, Chord } from "tonal";
+  import Piano from "./Piano.svelte";
 
   let midi;
 
   let notesPressed: number[] = [];
   let notes: string[] = [];
   let chords: string[] = [];
-  let midiData: [];
+  let midiData: Uint8Array[] = [];
 
   // // start talking to MIDI controller
   if (navigator.requestMIDIAccess) {
@@ -23,9 +24,8 @@
   /**
    * @param {any} midiData
    */
-  function onMIDISuccess(midiData: MIDIAccess) {
+  function onMIDISuccess(midi: MIDIAccess) {
     // this is all our MIDI data
-    midi = midiData;
     let allInputs = midi.inputs.values();
     // loop over all available inputs and listen for any MIDI input
     for (
@@ -69,6 +69,9 @@
 
 <div class="midi-wrapper">
   <div>
+    <section>
+      <Piano keys={notesPressed} />
+    </section>
     <section id="midi-data">
       <ul>
         {#each midiData as data}
